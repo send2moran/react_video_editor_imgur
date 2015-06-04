@@ -1,0 +1,30 @@
+{
+  "name": "react-video-example",
+  "version": "0.1.0",
+  "description": "A sample app featuring video player in ReactJS",
+  "dependencies": {
+    "lodash": "^3.9.3",
+    "rc-slider": "^1.1.0",
+    "react": "^0.13.1",
+    "react-bootstrap": "~0.19.1"
+  },
+  "devDependencies": {
+    "babel-core": "^4.7.16",
+    "babel-loader": "^4.2.0",
+    "react-hot-loader": "^1.2.4",
+    "request": "^2.54.0",
+    "webpack": "^1.7.3",
+    "webpack-dev-server": "^1.7.0",
+    "css-loader": "~0.9.1"
+  },
+  "scripts": {
+    "start": "node server.js",
+    "build": "./node_modules/.bin/webpack --config webpack.config.production.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jirivrany/react-video-example.git"
+  },
+  "author": "Jiri Vrany <jiri.vrany@gmail.com> (https://github.com/jirivrany)",
+  "license": "MIT"
+}
