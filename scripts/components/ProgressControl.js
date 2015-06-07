@@ -55,8 +55,6 @@ export default React.createClass({
 
     _seek: function(event) {
       return;
-      //debugger;
-      //this.setState({offsetLeft: (this.props.vidWidth - (this.refs.seekbar.getDOMNode().getClientRects()[0].left - event.clientX)) });
         let api = this.props.api,
             pos = ((event.clientX - event.target.getClientRects()[0].left) - this.props.offsetLeft) / this.props.vidWidth;
         api.currentTime = pos * api.duration;
@@ -65,13 +63,13 @@ export default React.createClass({
     _onChange: function (event) {
 
       var sliderStartSpanElement = this.refs.sliderStart.getDOMNode().querySelectorAll('span')[0];
-      var sliderStartVal = event.target.value;
-      var sliderEndVal = jQuery(this.refs.sliderEnd.getDOMNode().querySelectorAll('div')[0]).slider( "value" );
-
-      let api = this.props.api;
-      var pos = Math.round((sliderStartVal* api.duration) /100);
-
+      var sliderEndVal = this.state.sliderEndVal;
       var secondSliderMin = this.props.maxClipDuration/100 * sliderEndVal;
+
+      var sliderStartVal = event.target.value;
+      var api = this.props.api;
+      var pos = (sliderStartVal* api.duration) /100;
+
       console.clear();
       console.log('****');
       console.log(sliderStartVal);
@@ -81,20 +79,19 @@ export default React.createClass({
       console.log((sliderStartVal* (api.duration-secondSliderMin)) /100);
       console.log('****');
 
-      api.currentTime = pos;
       this.setState({seekTime: toVideoDuration(pos),rawSeekTime: pos});
-      //this.setState({seekTimeEnd: toVideoDuration(this.state.sliderEndPos), rawSeekTimeEnd: this.state.sliderEndPos});
-
       this.setState({progress : sliderStartVal});
-      this.setState({sliderStartLimit:100* secondSliderMin/ api.duration-secondSliderMin})
-      this.setState({sliderStartLimit:0})
-      this.setState({offsetLeft: sliderStartVal });
       this.setState({sliderStartPos: pos });
 
       setTimeout(function(){
-        this.setState({sliderStart: ((sliderStartSpanElement.getClientRects()[0].right) - (this.refs.sliderStart.getDOMNode().getClientRects()[0].left))-4 });
+        this.setState({sliderStart: ((sliderStartSpanElement.getClientRects()[0].right) - (this.refs.sliderStart.getDOMNode().getClientRects()[0].left)) });
       }.bind(this),10);
 
+      var limit = api.duration-this.state.sliderStartPos;
+      var sliderEndLimit = 100*limit/this.props.maxClipDuration;
+      this.setState({sliderEndLimit:sliderEndLimit});
+      this.setState({sliderStartLimit: (api.duration-secondSliderMin)*100/api.duration});
+      api.currentTime = pos;
       this.props.onUpdate(api.currentTime);
 
     },
@@ -102,19 +99,14 @@ export default React.createClass({
     _onChangeEndSlider: function(event){
       var sliderEndVal = event.target.value;
       var api = this.props.api;
-      var pos = Math.min(api.duration-this.state.sliderStartPos, Math.round(this.props.maxClipDuration * sliderEndVal/100));
-      var sliderEndPosPercent = Math.round(100 * pos/this.props.maxClipDuration);
-      this.setState({sliderEndLimit: Number(sliderEndPosPercent) });
+      var pos = Math.min(api.duration-this.state.sliderStartPos, (this.props.maxClipDuration * sliderEndVal/100));
+      var sliderEndPosPercent = (100 * pos/this.props.maxClipDuration);
+      this.setState({sliderEndPosPercent: sliderEndPosPercent});
       this.setState({sliderEndPos: pos });
+      this.setState({sliderEndVal: sliderEndVal});
       this.setState({seekTimeEnd: toVideoDuration(pos), rawSeekTimeEnd: pos});
-
-      //jQuery(this.refs.sliderStart.getDOMNode().querySelectorAll('div')[0]).slider( "value" , 100- (100* secondSliderMin/ api.duration-secondSliderMin));
-
-      // setTimeout(function(){
-      //   this.setState({sliderStart: ((sliderStartSpanElement.getClientRects()[0].right) - (this.refs.sliderStart.getDOMNode().getClientRects()[0].left))-4 });
-      // }.bind(this),10);
+      this.setState({sliderStartLimit: ((api.duration-(this.props.maxClipDuration/100 * sliderEndVal))*100/api.duration)});
     },
-
     componentWillReceiveProps: function(nextProps) {
       this.props.thumbnail.src = nextProps.videoOptionsSrc;
     },
@@ -134,14 +126,14 @@ export default React.createClass({
                                 />
 
                 <div id="horizontal-0" style={{position: 'absolute',top: '0px',bottom: '0px',left: '0px', right: '0px' }} >
-                  <ReactSlider limit={100-this.state.sliderStartLimit} min={0} max={100} range_type={'min'} ref="sliderStart" className='horizontal-slider' onChange={this._onChange}/>
+                  <ReactSlider limit={this.state.sliderStartLimit} min={0} max={100} range_type={'min'} ref="sliderStart" className='horizontal-slider' onChange={this._onChange}/>
                 </div>
 
-                <div style={{border: '1px solid #000', width:'120px', left: this.state.sliderStart + 'px', position: 'absolute'}}>
+                <div style={{border: '1px solid #000', width:'200px', left: this.state.sliderStart + 'px', position: 'absolute'}}>
                   <div id="horizontal-1" >
                     <div>
                       <strong>{this.state.seekTime}</strong> - <strong>{this.state.seekTimeEnd}</strong>
-                      <ReactSlider ref="sliderEnd" limit={100} value={0} min={0} max={100} range_type={'min'} className='horizontal-slider' onChange={this._onChangeEndSlider}/>
+                      <ReactSlider ref="sliderEnd" limit={this.state.sliderEndLimit} min={0} max={100} range_type={'min'} className='horizontal-slider' onChange={this._onChangeEndSlider}/>
                     </div>
                   </div>
                 </div>
@@ -151,7 +143,7 @@ export default React.createClass({
                             duration={this.props.duration}/>
 
                    <div style={{visibility: this.state.showTicket}} >
-                      <strong>{this.state.seekTime}</strong>
+                      <strong>{this.state.rawSeekTime}</strong>
                       <br />
                       <div>
                         <Thumbnail style={{visibility: this.state.showTicket}} video={this.props.thumbnail}  seek={this.state.rawSeekTime} width="200px" />
